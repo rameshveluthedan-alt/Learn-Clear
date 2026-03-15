@@ -1,0 +1,9 @@
+# Always use LF line endings for these files
+Dockerfile          text eol=lf
+requirements.txt    text eol=lf
+*.py                text eol=lf
+*.md                text eol=lf
+*.sh                text eol=lf
+
+# Windows files can keep CRLF
+*.bat               text eol=crlf
