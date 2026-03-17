@@ -928,7 +928,7 @@ def home():
       <div class="feature"><span class="feature-icon">🌐</span> Responds in 12 Indian languages</div>
       <div class="feature"><span class="feature-icon">📚</span> All CBSE, ICSE &amp; State Board subjects</div>
     </div>
-    <a href="https://t.me/learn_clear_bot?start=welcome" class="btn">🚀 Open LearnClear on Telegram</a>
+    <a href="https://t.me/LearnClear_bot?start=welcome" class="btn">🚀 Open LearnClear on Telegram</a>
     <p class="disclaimer">
       <span class="status-dot"></span><strong>Bot is online</strong><br><br>
       <strong>Note:</strong> LearnClear is an AI tutor for guidance only.
