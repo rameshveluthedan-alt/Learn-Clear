@@ -955,8 +955,14 @@ def wake():
 
 
 def _run_flask():
-    port = int(os.environ.get("PORT", 8080))   # Cloud Run default port
-    server.run(host="0.0.0.0", port=port, use_reloader=False)
+    port = int(os.environ.get("PORT", 8080))
+    log.info("Flask starting on port %d", port)
+    server.run(
+        host="0.0.0.0",
+        port=port,
+        use_reloader=False,
+        threaded=True
+    )
 
 
 def keep_alive():
@@ -993,15 +999,15 @@ def _start_polling():
 # ──────────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    # 1. Start Flask in a background thread
-    #    Cloud Run routes HTTP traffic here for health checks
+    # Start Flask FIRST and wait for it to bind to port
+    # Cloud Run health check hits port 8080 within seconds of startup
     keep_alive()
+    time.sleep(3)   # Give Flask time to bind to port 8080
 
-    # 2. Start Telegram polling in a background thread
+    # Then start Telegram polling
     _start_polling()
 
     log.info("LearnClear is live on Google Cloud Run.")
 
-    # 3. Keep the main thread alive — if this exits, all daemon threads die
     while True:
         time.sleep(60)
