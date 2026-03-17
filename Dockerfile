@@ -12,10 +12,10 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY main.py .
+COPY learnclear.py .
 
 # Cloud Run injects PORT as an environment variable (default 8080)
 ENV PORT=8080
 
 # Start the bot
-CMD ["python", "main.py"]
+CMD ["python", "learnclear.py"]
