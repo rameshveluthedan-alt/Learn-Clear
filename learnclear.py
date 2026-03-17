@@ -7,7 +7,7 @@ Date     : March 2026
 
 Tech Stack : Python, Google Gemini 2.5 Flash, pyTelegramBotAPI, Flask
 Hosting    : Google Cloud Run (min-instances=1, no cold starts)
-Telegram   : https://t.me/learn_clear_bot
+Telegram   : https://t.me/LearnClear_bot
 Live App   : https://learn-clear-xxxxxxxx-el.a.run.app
 
 Deployment:
@@ -999,15 +999,17 @@ def _start_polling():
 # ──────────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    # Start Flask FIRST and wait for it to bind to port
-    # Cloud Run health check hits port 8080 within seconds of startup
-    keep_alive()
-    time.sleep(3)   # Give Flask time to bind to port 8080
-
-    # Then start Telegram polling
+    # Start Telegram polling in background thread
     _start_polling()
+    log.info("LearnClear polling started.")
 
-    log.info("LearnClear is live on Google Cloud Run.")
-
-    while True:
-        time.sleep(60)
+    # Run Flask on MAIN thread — Cloud Run requires this
+    # Main thread must bind to PORT=8080 immediately
+    port = int(os.environ.get("PORT", 8080))
+    log.info("Flask starting on port %d", port)
+    server.run(
+        host="0.0.0.0",
+        port=port,
+        use_reloader=False,
+        threaded=True
+    )
