@@ -15,7 +15,10 @@ Deployment:
     --source . \
     --region asia-south1 \
     --allow-unauthenticated \
-    --min-instances 1 \
+    --min-instances 0 \
+    --max-instances 3 \
+    --memory 512Mi \
+    --cpu-boost
     --set-env-vars TELEGRAM_TOKEN=xxx,GEMINI_API_KEY=xxx
 """
 
@@ -23,11 +26,8 @@ import os
 import re
 import time
 import logging
-import json
-
 import telebot
-from flask import Flask
-from flask import request
+from flask import Flask, request
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
@@ -43,8 +43,13 @@ logging.basicConfig(
 )
 log = logging.getLogger("learn-clear")
 
-BOT_TOKEN  = os.environ["TELEGRAM_TOKEN"]
-GEMINI_KEY = os.environ["GEMINI_API_KEY"]
+BOT_TOKEN  = os.environ.get("TELEGRAM_TOKEN", "").strip()
+GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
+
+if not BOT_TOKEN:
+    raise ValueError("TELEGRAM_TOKEN is missing or empty.")
+if not GEMINI_KEY:
+    raise ValueError("GEMINI_API_KEY is missing or empty.")
 
 bot    = telebot.TeleBot(BOT_TOKEN, threaded=True)
 client = genai.Client(api_key=GEMINI_KEY)
@@ -374,7 +379,6 @@ NEVER use Markdown. No **, no __, no #, no *.
 # ──────────────────────────────────────────────────────────────────────────────
 
 _GEMINI_CONFIG = types.GenerateContentConfig(
-    thinking_config=types.ThinkingConfig(thinking_level=types.ThinkingLevel.MEDIUM),
     media_resolution=types.MediaResolution.MEDIA_RESOLUTION_HIGH,
 )
 
