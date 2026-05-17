@@ -967,67 +967,35 @@ def webhook():
         return "OK", 200
     return "Method not allowed", 405
 
-# def _run_flask():
-#     port = int(os.environ.get("PORT", 8080))
-#     log.info("Flask starting on port %d", port)
-#     server.run(
-#         host="0.0.0.0",
-#         port=port,
-#         use_reloader=False,
-#         threaded=True
-#     )
-
-
-# def keep_alive():
-#     t = threading.Thread(target=_run_flask, name="flask-keepalive", daemon=True)
-#     t.start()
-#     log.info("Flask keep-alive started.")
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# 13.  POLLING — simple thread, no watchdog needed on Cloud Run
-# ──────────────────────────────────────────────────────────────────────────────
-# Cloud Run with --min-instances 1 keeps the container alive 24/7.
-# No cold starts, no idle shutdowns, no UptimeRobot required.
-# A single daemon thread handles Telegram polling reliably.
-
-# def _start_polling():
-#     """Start infinity_polling in a background daemon thread."""
-#     def _poll():
-#         log.info("Polling thread started.")
-#         bot.infinity_polling(
-#             none_stop=True,
-#             interval=0,
-#             timeout=20,
-#             long_polling_timeout=20,
-#             logger_level=logging.WARNING,
-#             allowed_updates=["message", "callback_query"],
-#         )
-#     t = threading.Thread(target=_poll, name="bot-polling", daemon=True)
-#     t.start()
-
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 14.  ENTRY POINT
 # ──────────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    
-    # Remove any existing webhook first
-    bot.remove_webhook()
-    time.sleep(1)
 
-    # Set webhook to your Cloud Run URL
-    WEBHOOK_URL = os.environ.get("WEBHOOK_URL", "")
-    if WEBHOOK_URL:
-        bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
-        log.info("Webhook set to %s/webhook", WEBHOOK_URL)
-    else:
-        log.error("WEBHOOK_URL environment variable not set")
+    def setup_webhook():
+        """Set webhook in background so Flask starts immediately."""
+        time.sleep(2)   # wait for Flask to fully start first
+        try:
+            WEBHOOK_URL = os.environ.get("WEBHOOK_URL", "")
+            if WEBHOOK_URL:
+                bot.remove_webhook()
+                time.sleep(1)
+                bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
+                log.info("Webhook set to %s/webhook", WEBHOOK_URL)
+            else:
+                log.error("WEBHOOK_URL environment variable not set")
+        except Exception as e:
+            log.error("Failed to set webhook: %s", e)
 
+    # Start webhook setup in background thread
+    import threading
+    wh = threading.Thread(target=setup_webhook, daemon=True)
+    wh.start()
 
-    # Run Flask on MAIN thread — Cloud Run requires this
-    # Main thread must bind to PORT=8080 immediately
+    # Start Flask immediately on main thread
+    # Cloud Run health check passes instantly
     port = int(os.environ.get("PORT", 8080))
     log.info("Flask starting on port %d", port)
     server.run(
