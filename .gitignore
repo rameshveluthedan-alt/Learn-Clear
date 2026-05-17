@@ -207,8 +207,6 @@ marimo/_lsp/
 __marimo__/
 # Secret Environment Variables
 .env
-med_clear.env
-
 # Local Virtual Environment
 venv/
 .venv/
